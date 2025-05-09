@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background-dark: #030712;
+
+  --color-primary: #615fff;
+  --color-primary-hover: #7c86ff;
+}
+
+:root {
+  --primary-color: #615fff;
+  --primary-20-color: #625fff;
+  --primary-hover-color: #7c86ff;
+
+  --secondary-color: #28303e;
+
+  --text-color: #ffffff;
+
+  --button-text-color: #ffffff;
+
+  --divider-color: #bcb8b1;
+
+  --bg-dark: #030712;
+}
+
+html {
+  font-size: 14px;
+}
+
+div,
+p {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+.form-control {
+  @apply flex flex-col gap-1;
+}
+
+.form-control label {
+  @apply font-medium  text-black;
+}
+
+.form-control input {
+  @apply /* Layout e tamanho */
+  min-w-0 flex-auto px-3 h-12
+
+  /* Aparência básica */
+  appearance-none rounded-md bg-white shadow-md shadow-gray-800/5
+
+  /* Bordas */
+  border border-gray-300
+
+  /* Placeholder */
+  placeholder:text-gray-400
+
+  /* Foco */
+  focus:border-primary focus:ring-4 focus:ring-teal-500/10 focus:outline-hidden
+
+  read-only:text-gray-500;
+}
+
+.button {
+  @apply text-white;
+  @apply border border-primary hover:border-primary-hover rounded-md h-12 bg-primary hover:bg-primary-hover transition duration-300 cursor-pointer px-2;
+  @apply disabled:border-gray-400 disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed;
+}
+
+.button.small {
+  @apply h-8 px-3 space-x-1;
+}
+
+.hoverable {
+  @apply text-primary hover:text-primary-hover transition duration-300 cursor-pointer decoration-0;
+}

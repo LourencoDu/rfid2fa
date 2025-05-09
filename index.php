@@ -1,10 +1,8 @@
 <?php
 
-$baseUrl = dirname($_SERVER['SCRIPT_NAME']);
-define('BASE_URL', $baseUrl);
+include "autoload.php";
+include "config.php";
 
-require_once 'core/App.php';
-require_once 'core/Controller.php';
-require_once 'core/Model.php';
+session_start();
 
-$app = new App();
+include "routes/index.php";

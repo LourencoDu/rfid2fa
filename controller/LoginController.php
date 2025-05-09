@@ -1,35 +1,55 @@
 <?php
-class LoginController extends Controller {
-    public function index() {
-      ob_start();
-      require_once 'view/login.php';
-      $content = ob_get_clean();
-      $this->config = ['name' => 'login', 'title' => 'Login', 'content' => $content];
-      $this->render();
+
+namespace RFID2FA\Controller;
+
+use RFID2FA\Model\Login;
+
+final class LoginController extends Controller
+{
+  public function index(): void
+  {
+    $this->view = "Login/index.php";
+    $this->css = "Login/style.css";
+    $this->titulo = "Login";
+
+    if (parent::isPost()) {
+      $this->logar();
     }
 
-    public function autenticar() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = $_POST['username'];
-            $senha = $_POST['senha'];
+    $this->render();
+  }
 
-            $user = $this->model('User');
-            $usuario = $user->findByUsername($username);
+  public function logar(): void
+  {
+    $model = new Login();
+    $model->email = $_POST['email'] ?? '';
+    $model->senha = $_POST['senha'] ?? '';
+    $logado = $model->logar($model);
 
-            if ($usuario && password_verify($senha, $usuario['usu_senha'])) {
-                session_start();
-                $_SESSION['usuario'] = $usuario;
-                header('Location: /home/index');
-            } else {
-                $this->config['erro'] = "Usuário ou senha inválidos.";
-                $this->render();
-            }
-        }
+    if ($logado != null) {
+      $_SESSION['usuario'] = $logado;  
+      $_SESSION['usuario']->nome_completo = $logado->nome." ".trim($logado->sobrenome);
+      if($logado->tipo === "prestador") {
+        $_SESSION['usuario']->nome_completo = $logado->nome;
+      }
+
+      $iconePorTipo = array(
+        "prestador" => "fa-wrench",
+        "usuario" => "fa-user",
+        "funcionario" => "fa-id-badge"
+      );
+
+      $_SESSION['usuario']->icone = $iconePorTipo[$logado->tipo];
+      
+      header("Location: home");
+    } else {
+      $this->data['erro'] = "E-mail ou senha inválidos.";
+      $this->data['form'] = ["email" => $model->email, "senha" => $model->senha];
     }
+  }
 
-    public function sair() {
-        session_start();
-        session_destroy();
-        header('Location: /login/index');
-    }
+  public static function logout() : void {
+      session_destroy();
+      header("Location: login");
+  }
 }

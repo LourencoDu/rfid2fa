@@ -16,6 +16,9 @@ switch ($url) {
   case '/login':
     (new LoginController())->index();
     break;
+  case '/cadastro':
+    (new CadastroController())->index();
+    break;
   case '/logout':
     LoginController::logout();
     break;

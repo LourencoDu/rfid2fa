@@ -27,19 +27,7 @@ final class LoginController extends Controller
     $logado = $model->logar($model);
 
     if ($logado != null) {
-      $_SESSION['usuario'] = $logado;  
-      $_SESSION['usuario']->nome_completo = $logado->nome." ".trim($logado->sobrenome);
-      if($logado->tipo === "prestador") {
-        $_SESSION['usuario']->nome_completo = $logado->nome;
-      }
-
-      $iconePorTipo = array(
-        "prestador" => "fa-wrench",
-        "usuario" => "fa-user",
-        "funcionario" => "fa-id-badge"
-      );
-
-      $_SESSION['usuario']->icone = $iconePorTipo[$logado->tipo];
+      $_SESSION['usuario'] = $logado; 
       
       header("Location: home");
     } else {

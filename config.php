@@ -21,9 +21,15 @@ loadEnv(__DIR__ . '/.env');
 
 define("BASE_DIR", dirname(__FILE__, 2));
 define("BASE_DIR_NAME", basename(__DIR__));
+define("PUBLIC_DIR", BASE_DIR_NAME."/public");
 
-define("VIEWS", BASE_DIR."/rfid2fa/View/");
+define("VIEWS", BASE_DIR."/RFID2FA/View/");
 define("COMPONENTS", BASE_DIR."/rfid2fa/components/");
+
+$baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
+define("BASE_URL", $baseUrl);
+
+date_default_timezone_set('America/Sao_Paulo');
 
 $_ENV["db"]["host"] = "localhost:3306";
 $_ENV["db"]["user"] = $_ENV['DB_USER'] ?? "root";

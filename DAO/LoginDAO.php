@@ -12,17 +12,25 @@ final class LoginDAO extends DAO {
 
   public function autenticar(Login $model) : ?Login
   {
-    $sql = "SELECT id, nome, email, senha FROM usuario WHERE email=?;";
+    $sql = "SELECT
+    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha
+    FROM usuario u
+    WHERE u.email = ?;";
 
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->email);
     $stmt->execute();
 
-    $login = $stmt->fetchObject("RFID2FA\Model\Login");
-
+    $data = $stmt->fetchObject();
     
-    if(is_object($login)) {
-      if(password_verify($model->senha, $login->senha)) {
+    if(is_object($data)) {
+      if(password_verify($model->senha, $data->u_senha)) {
+        $login = new Login();
+        $login->id = $data->u_id;
+        $login->nome = $data->u_nome;
+        $login->email = $data->u_email;
+        $login->senha = $data->u_senha;
+
         return $login;
       }
     }

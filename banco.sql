@@ -51,7 +51,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `rfid2fa`.`log_acesso` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `data` TIMESTAMP NOT NULL,
-  `sucesso` TINYBLOB NOT NULL,
+  `sucesso` TINYINT NOT NULL,
   `id_usuario` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_log_acesso_usuario_idx` (`id_usuario` ASC) VISIBLE,
@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS `rfid2fa`.`log_acesso` (
     REFERENCES `rfid2fa`.`usuario` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `rfid2fa`.`leitura`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `rfid2fa`.`leitura` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `data` TIMESTAMP NOT NULL,
+  `uid_cartao` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
 

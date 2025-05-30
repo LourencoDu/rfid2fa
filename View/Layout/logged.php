@@ -2,7 +2,7 @@
   <div class="flex flex-col flex-1 max-h-screen max-w-screen p-2 sm:p-5 gap-2 sm:gap-4">
     <div class="flex sm:hidden items-center justify-between w-full h-10">
       <div class="flex items-center gap-1">
-        <i class="fa-solid fa-car-side text-3xl"></i>
+        <i class="fa-solid fa-id-card text-3xl"></i>
         <span class="text-xl font-semibold">RFID2FA</span>
       </div>
 

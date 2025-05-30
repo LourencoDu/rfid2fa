@@ -3,6 +3,7 @@
 namespace RFID2FA\DAO;
 
 use RFID2FA\Model\Cartao;
+use RFID2FA\Model\Leitura;
 
 final class CartaoDAO extends DAO
 {
@@ -11,28 +12,56 @@ final class CartaoDAO extends DAO
     parent::__construct();
   }
 
-    public function verificarLeitura(Cartao $model): ?Cartao
+  private function parseRow($data, $prefix = ""): Cartao
+  {
+    $model = new Cartao();
+
+    $model->id = $data[$prefix . "id"] ?? null;
+    $model->uid = $data[$prefix . "uid"] ?? null;
+    $model->id_usuario = $data[$prefix . "id_usuario"] ?? null;
+
+    return $model;
+  }
+
+  public function selectByUid(string $uid): ?Cartao
+  {
+    $sql = "SELECT * FROM cartao WHERE uid = ?;";
+
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->bindValue(1, $uid);
+    $stmt->execute();
+
+    $data = $stmt->fetch(DAO::FETCH_ASSOC);
+
+    if (is_array($data)) {
+      return $this->parseRow($data);
+    }
+
+    return null;
+  }
+
+  public function verificarLeitura(Cartao $model): ?Cartao
   {
     $sql = "SELECT * FROM cartao WHERE id_usuario = ?";
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->id_usuario);
     $stmt->execute();
 
-    $cartao = $stmt->fetchObject();
+    $cartao = $stmt->fetch(DAO::FETCH_ASSOC);
 
-    if (is_object($cartao)) {
+    if (is_array($cartao)) {
       $sql = "SELECT l.id, l.data, l.uid_cartao FROM leitura l WHERE uid_cartao = ? AND `data` >= NOW() - INTERVAL 10 SECOND;";
 
       $stmt = parent::$conexao->prepare($sql);
-      $stmt->bindValue(1, $cartao->uid);
+      $stmt->bindValue(1, $cartao["uid"]);
       $stmt->execute();
 
-      $data = $stmt->fetchObject(DAO::FETCH_ASSOC);
+      $data = $stmt->fetch(DAO::FETCH_ASSOC);
 
       if (is_array($data)) {
         $model = $cartao;
 
-        return $model;
+        return $this->parseRow($model);
       } else {
         return null;
       }
@@ -41,36 +70,50 @@ final class CartaoDAO extends DAO
     return null;
   }
 
-  public function verificarLeitura2(Cartao $model): ?Cartao
+  public function verificarUltimaLeitura(): ?Leitura
   {
-    $sql = "SELECT l.id, l.data, l.uid_cartao FROM leitura l WHERE uid_cartao = ? AND `data` >= NOW() - INTERVAL 10 SECOND;";
+    $sql = "SELECT l.id, l.data, l.uid_cartao FROM leitura l WHERE `data` >= NOW() - INTERVAL 5 SECOND;";
+
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->execute();
+
+    $data = $stmt->fetch(DAO::FETCH_ASSOC);
+
+    if (is_array($data)) {
+      return (new LeituraDAO())->parseRow($data);
+    } else {
+      return null;
+    }
+  }
+
+  public function save(Cartao $model): Cartao
+  {
+    return ($model->id == null) ? $this->insert($model) : $this->update($model);
+  }
+
+  private function insert(Cartao $model): Cartao
+  {
+    $sql = "INSERT INTO cartao (uid, id_usuario) VALUES (?, ?);";
 
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->uid);
+    $stmt->bindValue(2, $model->id_usuario);
     $stmt->execute();
 
-    $leitura = $stmt->fetchObject();
+    $model->id = parent::$conexao->lastInsertId();
 
-    if (is_object($leitura)) {
-      $sql_cartao = "SELECT c.id c_id, c.uid c_uid, c.id_usuario c_id_usuario WHERE c.uid = ?";
+    return $model;
+  }
 
-      $stmt = parent::$conexao->prepare($sql_cartao);
-      $stmt->bindValue(1, $model->uid);
-      $stmt->execute();
+  private function update(Cartao $model): Cartao
+  {
+    $sql = "UPDATE cartao SET uid=? WHERE id=?;";
 
-      $data = $stmt->fetchObject(DAO::FETCH_ASSOC);
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->bindValue(1, $model->uid);
+    $stmt->bindValue(2, $model->id);
+    $stmt->execute();
 
-      if (is_array($data)) {
-        $model->id = $data["c_id"];
-        $model->uid = $data["c_uid"];
-        $model->id_usuario = $data["c_id_usuario"];
-
-        return $model;
-      } else {
-        return null;
-      }
-    }
-
-    return null;
+    return $model;
   }
 }

@@ -17,11 +17,8 @@ final class UsuarioDAO extends DAO
 
     $model->id = $data[$prefix . "id"] ?? null;
     $model->nome = $data[$prefix . "nome"] ?? null;
-    $model->sobrenome = $data[$prefix . "sobrenome"] ?? null;
     $model->email = $data[$prefix . "email"] ?? null;
-    $model->telefone = $data[$prefix . "telefone"] ?? null;
     $model->senha = $data[$prefix . "senha"] ?? null;
-    $model->tipo = $data[$prefix . "tipo"] ?? null;
 
     return $model;
   }
@@ -33,15 +30,12 @@ final class UsuarioDAO extends DAO
 
   private function insert(Usuario $model): Usuario
   {
-    $sql = "INSERT INTO usuario (nome, sobrenome, telefone, email, senha, tipo) VALUES (?, ?, ?, ?, ?, ?);";
+    $sql = "INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?);";
 
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->nome);
-    $stmt->bindValue(2, $model->sobrenome);
-    $stmt->bindValue(3, $model->telefone);
-    $stmt->bindValue(4, $model->email);
-    $stmt->bindValue(5, password_hash($model->senha, PASSWORD_DEFAULT));
-    $stmt->bindValue(6, $model->tipo ?? "usuario");
+    $stmt->bindValue(2, $model->email);
+    $stmt->bindValue(3, password_hash($model->senha, PASSWORD_DEFAULT));
     $stmt->execute();
 
     $model->id = parent::$conexao->lastInsertId();
@@ -51,68 +45,14 @@ final class UsuarioDAO extends DAO
 
   private function update(Usuario $model): Usuario
   {
-    $sql = "UPDATE usuario SET nome=?, sobrenome=?, telefone=? WHERE id=?;";
+    $sql = "UPDATE usuario SET nome=? WHERE id=?;";
 
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->nome);
-    $stmt->bindValue(2, $model->sobrenome);
-    $stmt->bindValue(3, $model->telefone);
-    $stmt->bindValue(4, $model->id);
+    $stmt->bindValue(2, $model->id);
     $stmt->execute();
 
     return $model;
-  }
-
-  public function alterarSenha(int $id_usuario, string $senha): bool
-  {
-    $sql = "UPDATE usuario SET senha=? WHERE id=?;";
-
-    $stmt = parent::$conexao->prepare($sql);
-    $stmt->bindValue(1, password_hash($senha, PASSWORD_DEFAULT));
-    $stmt->bindValue(2, $id_usuario);
-    return $stmt->execute();
-  }
-
-  public function selectById(int $id): ?Usuario
-  {
-    $sql = "SELECT * FROM usuario WHERE id=?;";
-
-    $stmt = parent::$conexao->prepare($sql);
-    $stmt->bindValue(1, $id);
-    $stmt->execute();
-
-    $model = $stmt->fetchObject("RFID2FA\Model\Usuario");
-
-    return is_object($model) ? $model : null;
-  }
-
-  public function selectByEmail(string $email): ?Usuario
-  {
-    $sql = "SELECT * FROM usuario WHERE email=?;";
-
-    $stmt = parent::$conexao->prepare($sql);
-    $stmt->bindValue(1, $email);
-    $stmt->execute();
-
-    return $stmt->fetchObject("RFID2FA\Model\Usuario");
-  }
-
-  public function selectByTipo(string $tipo): array
-  {
-    $sql = "SELECT id, nome, sobrenome, email, telefone, tipo FROM usuario WHERE tipo=?;";
-
-    $stmt = parent::$conexao->prepare($sql);
-    $stmt->bindValue(1, $tipo);
-    $stmt->execute();
-
-    $resultados = $stmt->fetchAll(DAO::FETCH_ASSOC);
-    $linhas = [];
-
-    foreach ($resultados as $linha) {
-      $linhas[] = UsuarioDAO::parseRow($linha);
-    }
-
-    return $linhas;
   }
 
   public function select(): array
@@ -125,12 +65,51 @@ final class UsuarioDAO extends DAO
     return $stmt->fetchAll(DAO::FETCH_CLASS, "RFID2FA\Model\Usuario");
   }
 
-  public function delete(int $id): bool
+  public function selectByEmail(string $email): ?Usuario
   {
-    $sql = "DELETE FROM usuario WHERE id=?;";
+    $sql = "SELECT
+    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha
+    FROM usuario u
+    WHERE u.email = ?;";
 
     $stmt = parent::$conexao->prepare($sql);
-    $stmt->bindValue(1, $id);
-    return $stmt->execute();
+    $stmt->bindValue(1, $email);
+    $stmt->execute();
+
+    $data = $stmt->fetch(DAO::FETCH_ASSOC);
+
+    if (is_array($data)) {
+      return $this->parseRow($data);
+    }
+
+    return null;
+  }
+
+  public function autenticar(Usuario $model): ?Usuario
+  {
+    $sql = "SELECT
+    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha
+    FROM usuario u
+    WHERE u.email = ?;";
+
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->bindValue(1, $model->email);
+    $stmt->execute();
+
+    $data = $stmt->fetchObject();
+
+    if (is_object($data)) {
+      if (password_verify($model->senha, $data->u_senha)) {
+        $usuario = new Usuario();
+        $usuario->id = $data->u_id;
+        $usuario->nome = $data->u_nome;
+        $usuario->email = $data->u_email;
+        $usuario->senha = $data->u_senha;
+
+        return $usuario;
+      }
+    }
+
+    return null;
   }
 }

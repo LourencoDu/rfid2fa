@@ -3,6 +3,7 @@
 namespace RFID2FA\Controller;
 
 use RFID2FA\Helper\JsonResponse;
+use RFID2FA\Model\Leitura;
 
 class CaminhoItem
 {
@@ -64,8 +65,27 @@ abstract class Controller
     }
   }
 
-  final protected static function isProtectedApi() {
-    Controller::isProtected( true);
+  final protected static function isProtectedApi()
+  {
+    Controller::isProtected(true);
+  }
+
+  final protected static function isProtectedApiByCartao()
+  {
+    Controller::isProtectedApi();
+
+    $leitura = (new Leitura())->getLast();
+    if ($leitura != null) {
+      $uid_cartao_usuario = $_SESSION["usuario"]->cartao->uid;
+      $cartao_pertence_usuario = $uid_cartao_usuario == $leitura->uid_cartao;
+      if (!$cartao_pertence_usuario) {
+        $response = JsonResponse::erro("Cartão lido não pertence ao usuário.", ["cartao-invalido"]);
+      }
+    } else {
+      $response = JsonResponse::erro("Aguardando leitura do cartão.", ["aguardando-leitura-cartao"]);
+      $response->enviar();
+      exit();
+    }
   }
 
 

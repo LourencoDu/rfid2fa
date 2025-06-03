@@ -2,7 +2,6 @@
 
 use RFID2FA\Controller\{
   HomeController,
-  LoginController,
   UsuarioController,
   LeituraController,
   MeuPerfilController
@@ -35,7 +34,7 @@ switch ($url) {
     (new LeituraController())->cadastrar();
   break;
   case '/logout':
-    LoginController::logout();
+    UsuarioController::logout();
     break;
   case '/meu-perfil':
     (new MeuPerfilController())->index();

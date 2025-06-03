@@ -41,7 +41,7 @@ if (isset($data["form"])) {
 
       <button class="button mt-4 mb-8" type="submit">Cadastrar</button>
 
-            <div class="flex flex-row justify-center items-center px-1.5 pt-8 gap-2 border-t border-t-gray-400">
+      <div class="flex flex-row justify-center items-center px-1.5 pt-8 gap-2 border-t border-t-gray-400">
         <span class="">Já tem uma conta?</span>
         <a href="login" class="hoverable font-semibold">Entre na plataforma</a>
       </div>

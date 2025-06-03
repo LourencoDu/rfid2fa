@@ -2,6 +2,7 @@
 
 namespace RFID2FA\DAO;
 
+use RFID2FA\Model\Cartao;
 use RFID2FA\Model\Usuario;
 
 final class UsuarioDAO extends DAO
@@ -19,6 +20,15 @@ final class UsuarioDAO extends DAO
     $model->nome = $data[$prefix . "nome"] ?? null;
     $model->email = $data[$prefix . "email"] ?? null;
     $model->senha = $data[$prefix . "senha"] ?? null;
+
+    $cartao = null;
+    if ($data["c_id"] != null) {
+      $cartao = new Cartao();
+      $cartao->id = $data["c_id"];
+      $cartao->uid = $data["c_uid"];
+      $cartao->id_usuario = ["c_id_usuario"];
+    }
+    $model->cartao = $cartao;
 
     return $model;
   }
@@ -68,8 +78,10 @@ final class UsuarioDAO extends DAO
   public function selectByEmail(string $email): ?Usuario
   {
     $sql = "SELECT
-    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha
+    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha,
+    c.id c_id, c.uid c_uid, c.id_usuario c_id_usuario
     FROM usuario u
+    LEFT JOIN cartao c ON u.id = c.id_usuario
     WHERE u.email = ?;";
 
     $stmt = parent::$conexao->prepare($sql);
@@ -79,7 +91,7 @@ final class UsuarioDAO extends DAO
     $data = $stmt->fetch(DAO::FETCH_ASSOC);
 
     if (is_array($data)) {
-      return $this->parseRow($data);
+      return $this->parseRow($data, "u_");
     }
 
     return null;
@@ -88,25 +100,21 @@ final class UsuarioDAO extends DAO
   public function autenticar(Usuario $model): ?Usuario
   {
     $sql = "SELECT
-    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha
+    u.id u_id, u.nome u_nome, u.email u_email, u.senha u_senha,
+    c.id c_id, c.uid c_uid, c.id_usuario c_id_usuario
     FROM usuario u
+    LEFT JOIN cartao c ON u.id = c.id_usuario
     WHERE u.email = ?;";
 
     $stmt = parent::$conexao->prepare($sql);
     $stmt->bindValue(1, $model->email);
     $stmt->execute();
 
-    $data = $stmt->fetchObject();
+    $data = $stmt->fetch(DAO::FETCH_ASSOC);
 
-    if (is_object($data)) {
-      if (password_verify($model->senha, $data->u_senha)) {
-        $usuario = new Usuario();
-        $usuario->id = $data->u_id;
-        $usuario->nome = $data->u_nome;
-        $usuario->email = $data->u_email;
-        $usuario->senha = $data->u_senha;
-
-        return $usuario;
+    if (is_array($data)) {
+      if (password_verify($model->senha, $data["u_senha"])) {
+        return $this->parseRow($data, "u_");
       }
     }
 

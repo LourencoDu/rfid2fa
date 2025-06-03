@@ -7,21 +7,6 @@ $entradas_menu = array([
   "rota" => "meu-perfil"
 ]);
 
-if ($usuario->tipo == "usuario") {
-  array_push($entradas_menu, [
-    "texto" => "Meus Veículos",
-    "icone" => "fa-car",
-    "rota" => "veiculo"
-  ]);
-}
-
-if ($usuario->tipo == "prestador") {
-  array_push($entradas_menu, [
-    "texto" => "Meus Funcionários",
-    "icone" => "fa-users-gear",
-    "rota" => "funcionario"
-  ]);
-}
 ?>
 
   <div class="flex flex-row items-center gap-2 relative">

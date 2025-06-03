@@ -8,6 +8,7 @@ final class Usuario extends Model
 {
   public $id, $nome, $email, $senha;
   public $nome_completo, $icone;
+  public Cartao $cartao;
 
     public function getByEmail(string $email): ?Usuario
   {
@@ -24,7 +25,7 @@ final class Usuario extends Model
     return (new UsuarioDAO())->save($this);
   }
 
-  function logar() : ?Usuario {
+  function autenticar() : ?Usuario {
     return (new UsuarioDAO())->autenticar($this);
   }
 }

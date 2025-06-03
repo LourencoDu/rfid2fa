@@ -18,7 +18,7 @@ if (isset($data["form"])) {
 
     <?php include COMPONENTS . "backend-error.php"; ?>
 
-    <form id="form-login" class="w-full flex flex-col gap-2">
+    <form id="form" class="w-full flex flex-col gap-2">
       <div class="form-control flex-col">
         <label for="email">E-mail</label>
         <input type="email" name="email" id="email" placeholder="seuemail@exemplo.com" value="<?= $email ?>">

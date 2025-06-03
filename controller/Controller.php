@@ -38,7 +38,20 @@ abstract class Controller
     require_once VIEWS . '/Layout/index.php';
   }
 
-  final protected static function isProtected(?array $tiposBloqueados = null, ?array $tiposPermitidos = null, ?bool $json = false)
+  final protected static function isNotSignedOnly(?bool $json = false)
+  {
+    if (isset($_SESSION["usuario"])) {
+      if ($json == true) {
+        $response = JsonResponse::erro("Somente acessivel estando deslogado.", [], 401);
+        $response->enviar();
+      } else {
+        Header("Location: /" . BASE_DIR_NAME . "/");
+      }
+      exit;
+    }
+  }
+
+  final protected static function isProtected(?bool $json = false)
   {
     if (!isset($_SESSION["usuario"])) {
       if ($json == true) {
@@ -49,42 +62,10 @@ abstract class Controller
       }
       exit;
     }
-
-    $usuario = $_SESSION["usuario"];
-    $tipoUsuario = strtolower($usuario->tipo);
-
-    // Prioridade para lista de permitidos, se fornecida
-    if ($tiposPermitidos !== null) {
-      $tiposPermitidos = array_map('strtolower', $tiposPermitidos);
-      if (!in_array($tipoUsuario, $tiposPermitidos)) {
-        if ($json == true) {
-          $response = JsonResponse::erro("Você não tem permissão para acessar esse recurso.", [], 403);
-          $response->enviar();
-        } else {
-          header("Location: /" . BASE_DIR_NAME . "/home");
-        }
-        exit;
-      }
-      return;
-    }
-
-    // Verifica lista de bloqueados, se fornecida
-    if ($tiposBloqueados !== null) {
-      $tiposBloqueados = array_map('strtolower', $tiposBloqueados);
-      if (in_array($tipoUsuario, $tiposBloqueados)) {
-        if ($json == true) {
-          $response = JsonResponse::erro("Você não tem permissão para acessar esse recurso.", [], 403);
-          $response->enviar();
-        } else {
-          header("Location: /" . BASE_DIR_NAME . "/home");
-        }
-        exit;
-      }
-    }
   }
 
-  final protected static function isProtectedApi(?array $tiposBloqueados = null, ?array $tiposPermitidos = null) {
-    Controller::isProtected($tiposBloqueados, $tiposPermitidos, true);
+  final protected static function isProtectedApi() {
+    Controller::isProtected( true);
   }
 
 

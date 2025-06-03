@@ -4,7 +4,8 @@ use RFID2FA\Controller\{
   HomeController,
   LoginController,
   UsuarioController,
-  LeituraController
+  LeituraController,
+  MeuPerfilController
 };
 
 $url = rtrim(str_replace("rfid2fa/", "", parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH)), '/');
@@ -35,6 +36,9 @@ switch ($url) {
   break;
   case '/logout':
     LoginController::logout();
+    break;
+  case '/meu-perfil':
+    (new MeuPerfilController())->index();
     break;
   default:
     // Se nenhuma rota for encontrada

@@ -79,7 +79,7 @@ public static function removerAcentos($texto) {
  * @param string $dataHora Data e hora no formato Y-m-d H:i:s
  * @return string Data formatada com rótulo relativo
  */
-public static function formatarDataHora(string $dataHora, string $formato = "d/m/Y H:i", bool $showDiff = false): string
+public static function formatarDataHora(string $dataHora, string $formato = "d/m/Y H:i:s", bool $showDiff = false): string
 {
   try {
     $data = new \DateTime($dataHora);

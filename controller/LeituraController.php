@@ -9,8 +9,16 @@ final class LeituraController extends Controller
 {
   public function index(): void
   {
+    parent::isProtected();
+
     $this->view = "Leitura/index.php";
     $this->titulo = "Leituras";
+
+    $usuario = $_SESSION["usuario"];
+    $id_usuario = $usuario->id;
+
+    $leituras = (new Leitura())->getAllByIdUsuario((int) $id_usuario);
+    $this->data["leituras"] = $leituras;
 
     $this->render();
   }

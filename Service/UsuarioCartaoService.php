@@ -22,10 +22,10 @@ class UsuarioCartaoService
       $usuario->senha = $dadosUsuario->senha;
       $usuario->save();
 
-      $leitura = new Cartao();
-      $leitura->id_usuario = $usuario->id;
-      $leitura->uid = $dadosLeitura->uid_cartao;
-      $leitura->save();
+      $cartao = new Cartao();
+      $cartao->id_usuario = $usuario->id;
+      $cartao->uid = $dadosLeitura->uid_cartao;
+      $cartao->save();
 
       $pdo->commit();
 

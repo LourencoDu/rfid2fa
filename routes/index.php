@@ -1,7 +1,6 @@
 <?php
 
 use RFID2FA\Controller\{
-  HomeController,
   UsuarioController,
   LeituraController,
   MeuPerfilController
@@ -13,7 +12,7 @@ $url = rtrim(str_replace("rfid2fa/", "", parse_url($_SERVER["REQUEST_URI"], PHP_
 switch ($url) {
   case '':
   case '/home':
-    (new HomeController())->index();
+    (new MeuPerfilController())->index();
     break;
   case '/login':
     (new UsuarioController())->login();
@@ -39,8 +38,14 @@ switch ($url) {
   case '/meu-perfil':
     (new MeuPerfilController())->index();
     break;
+  case '/leitura':
+    (new LeituraController())->index();
+    break;
+  case '/api/usuario/alterar-senha':
+    (new UsuarioController())->alterarSenhaAPI();
+    break;
   default:
     // Se nenhuma rota for encontrada
-    (new HomeController())->index();
+    (new MeuPerfilController())->index();
     break;
 }

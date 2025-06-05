@@ -28,4 +28,9 @@ final class Usuario extends Model
   function autenticar() : ?Usuario {
     return (new UsuarioDAO())->autenticar($this);
   }
+
+  public static function alterarSenha(int $id_usuario, string $senha): bool
+  {
+    return (new UsuarioDAO())->alterarSenha($id_usuario, $senha);
+  }
 }

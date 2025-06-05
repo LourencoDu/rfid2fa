@@ -66,6 +66,8 @@ final class UsuarioController extends Controller
             $usuario_cadastrado = $service->cadastrar($model_usuario, $leitura);
 
             $response = JsonResponse::sucesso("Usuário cadastrado com sucesso!", [$usuario_cadastrado]);
+            $leitura->acao = "Cadastro do cartão";
+            $leitura->save();
           } else {
             $response = JsonResponse::erro("O Cartão lido já está em uso. Utilize outro cartão.", ["cartao-em-uso"]);
           }
@@ -104,7 +106,8 @@ final class UsuarioController extends Controller
     $usuario = $model->autenticar($model);
 
     if ($usuario != null) {
-      $leitura = (new Leitura())->getLast();
+      $leitura = new Leitura();
+      $leitura = $leitura->getLast();
       if($leitura != null) {
         $leitura_cartao = (new Cartao())->getByUid($leitura->uid_cartao);
         $cartao_pertence_usuario = false;
@@ -119,6 +122,9 @@ final class UsuarioController extends Controller
           $_SESSION['usuario']->icone = "fa-user";
           
           $response = JsonResponse::sucesso("Usuário logado com sucesso!");
+
+          $leitura->acao = "Acesso ao sistema";
+          $leitura->save();
         } else {
           $response = JsonResponse::erro("Cartão lido não pertence ao usuário.", ["cartao-invalido"]);
         }
@@ -127,6 +133,33 @@ final class UsuarioController extends Controller
       }
     } else {
       $response = JsonResponse::erro("E-mail ou senha inválidos.", ["erro" => "email-ou-senha-invalidos"]);
+    }
+
+    $response->enviar();
+  }
+
+    public function alterarSenhaAPI(): void
+  {
+    parent::isProtectedApiByCartao("Alteração de senha");
+
+    $senhaAtual = $_POST["senha-atual"] ?? "";
+    $senhaNova = $_POST["senha-nova"] ?? "";
+
+    $response = null;
+
+    if (isset($senhaAtual) && isset($senhaNova)) {
+      if (password_verify($senhaAtual, $_SESSION["usuario"]->senha)) {
+        $resultado = Usuario::alterarSenha($_SESSION["usuario"]->id, $senhaNova);
+        if ($resultado) {
+          $response = JsonResponse::sucesso("Senha alterada com sucesso");
+        } else {
+          $response = JsonResponse::erro("Falha ao alterar senha. Tente novamente mais tarde.");
+        }
+      } else {
+        $response = JsonResponse::erro("Senha atual incorreta.", [], 401);
+      }
+    } else {
+      $response = JsonResponse::erro("Preencha todos os campos.");
     }
 
     $response->enviar();

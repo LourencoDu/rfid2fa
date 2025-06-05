@@ -120,4 +120,14 @@ final class UsuarioDAO extends DAO
 
     return null;
   }
+
+  public function alterarSenha(int $id_usuario, string $senha): bool
+  {
+    $sql = "UPDATE usuario SET senha=? WHERE id=?;";
+
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->bindValue(1, password_hash($senha, PASSWORD_DEFAULT));
+    $stmt->bindValue(2, $id_usuario);
+    return $stmt->execute();
+  }
 }

@@ -2,7 +2,8 @@
 $usuario = $_SESSION["usuario"];
 
 $menuItens = [
-  ['rota' => 'home', 'icone' => 'fa-home', 'label' => "Início"],
+  ['rota' => 'meu-perfil', 'icone' => 'fa-user', 'label' => "Meu Perfil"],
+  ['rota' => 'leitura', 'icone' => 'fa-book', 'label' => "Leituras"],
 ];
 
 function isActiveRoute($rotaItem)

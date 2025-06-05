@@ -70,16 +70,22 @@ abstract class Controller
     Controller::isProtected(true);
   }
 
-  final protected static function isProtectedApiByCartao()
+  final protected static function isProtectedApiByCartao($acao = null)
   {
     Controller::isProtectedApi();
 
-    $leitura = (new Leitura())->getLast();
+    $leitura = new Leitura();
+    $leitura = $leitura->getLast();
     if ($leitura != null) {
       $uid_cartao_usuario = $_SESSION["usuario"]->cartao->uid;
       $cartao_pertence_usuario = $uid_cartao_usuario == $leitura->uid_cartao;
       if (!$cartao_pertence_usuario) {
         $response = JsonResponse::erro("Cartão lido não pertence ao usuário.", ["cartao-invalido"]);
+        $response->enviar();
+        exit();
+      } else {
+        $leitura->acao = $acao;
+        $leitura->save();
       }
     } else {
       $response = JsonResponse::erro("Aguardando leitura do cartão.", ["aguardando-leitura-cartao"]);

@@ -1,4 +1,5 @@
 const form = document.getElementById("form-modal-form");
+let isOpen = false;
 
 const validators = {
   senha: (val) => /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(val),
@@ -46,7 +47,52 @@ document
     });
   });
 
-function onSubmitForm(event) {
+function handleSucesso() {
+  showSnackbar("Senha alterada com sucesso!", "success");
+  closeFormModal();
+  closeReadCardModal();
+}
+
+function handleFalha(erro = "", mensagem = "") {
+  if (!!erro || !!mensagem) {
+    showSnackbar(mensagem, "erro", 5000);
+  } else {
+    showSnackbar("Falha ao alterar senha", "erro", 5000);
+  }
+  closeReadCardModal();
+  closeFormModal();
+}
+
+async function handleAlterarSenha() {
+  setTimeout(async () => {
+    const formData = new FormData(form);
+
+    const senhaAtual = formData.get("senha-atual");
+    const senhaNova = formData.get("senha-nova");
+
+    const response = await post(
+      "/usuario/alterar-senha",
+      new URLSearchParams({
+        "senha-atual": senhaAtual,
+        "senha-nova": senhaNova,
+      })
+    );
+
+    if (response.status === "success") {
+      handleSucesso();
+    } else {
+      const erro = response.erros[0];
+
+      if (erro == "aguardando-leitura-cartao") {
+        handleAlterarSenha();
+      } else {
+        handleFalha(erro, response.mensagem);
+      }
+    }
+  }, 2500);
+}
+
+async function onSubmitForm(event) {
   event.preventDefault();
 
   let valido = true;
@@ -65,21 +111,35 @@ function onSubmitForm(event) {
     const senhaAtual = dados.get("senha-atual");
     const senhaNova = dados.get("senha-nova");
 
-    setFormModalIsLoading(true);
-    post(
+    toggleLoading(true);
+
+    const response = await post(
       "/usuario/alterar-senha",
       new URLSearchParams({
         "senha-atual": senhaAtual,
         "senha-nova": senhaNova,
       })
-    ).then((response) => {
-      setFormModalIsLoading(false);
-      if (response.status === "error") {
-        showFormModalError(response.mensagem);
+    );
+
+    toggleLoading(false);
+
+    if (response?.status === "success") {
+      handleSucesso();
+    } else {
+      const erro = response?.erros[0];
+
+      if (erro == "aguardando-leitura-cartao") {
+        handleAlterarSenha();
+
+        isOpen = true;
+        openReadCardModal({
+          onCancel: () => {
+            isOpen = false;
+          },
+        });
       } else {
-        showSnackbar("Senha alterada com sucesso!", "success");
-        closeFormModal();
+        handleFalha(erro, response.mensagem);
       }
-    });
+    }
   }
 }

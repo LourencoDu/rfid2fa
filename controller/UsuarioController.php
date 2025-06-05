@@ -108,19 +108,19 @@ final class UsuarioController extends Controller
     if ($usuario != null) {
       $leitura = new Leitura();
       $leitura = $leitura->getLast();
-      if($leitura != null) {
+      if ($leitura != null) {
         $leitura_cartao = (new Cartao())->getByUid($leitura->uid_cartao);
         $cartao_pertence_usuario = false;
 
-        if($leitura_cartao != null) {
+        if ($leitura_cartao != null) {
           $cartao_pertence_usuario = $leitura_cartao->id_usuario == $usuario->id;
         }
 
-        if($cartao_pertence_usuario) {
+        if ($cartao_pertence_usuario) {
           $_SESSION["usuario"] = $usuario;
           $_SESSION['usuario']->nome_completo = $usuario->nome;
           $_SESSION['usuario']->icone = "fa-user";
-          
+
           $response = JsonResponse::sucesso("Usuário logado com sucesso!");
 
           $leitura->acao = "Acesso ao sistema";
@@ -138,7 +138,7 @@ final class UsuarioController extends Controller
     $response->enviar();
   }
 
-    public function alterarSenhaAPI(): void
+  public function alterarSenhaAPI(): void
   {
     parent::isProtectedApiByCartao("Alteração de senha");
 
@@ -160,6 +160,42 @@ final class UsuarioController extends Controller
       }
     } else {
       $response = JsonResponse::erro("Preencha todos os campos.");
+    }
+
+    $response->enviar();
+  }
+
+
+  public function alterarCartaoAPI(): void
+  {
+    parent::isProtectedApi();
+    $usuario = $_SESSION["usuario"];
+    $id_usuario = $usuario->id;
+
+    $response = null;
+
+    try {
+      $leitura = (new Leitura())->getLast();
+      if ($leitura != null) {
+        $cartao_nao_existe = (new Cartao())->getByUid($leitura->uid_cartao) == null;
+
+        if ($cartao_nao_existe) {
+          $cartao_usuario = (new Cartao())->getByIdUsuario($id_usuario);
+          $cartao_usuario->uid = $leitura->uid_cartao;          
+          $cartao_usuario->save();
+          $_SESSION["usuario"]->cartao = $cartao_usuario;
+
+          $leitura->acao = "Alteração do cartão cadastrado";
+          $leitura->save();
+          $response = JsonResponse::sucesso("Cartão cadastrado alterado com sucesso!");
+        } else {
+          $response = JsonResponse::erro("O Cartão lido já está em uso. Utilize outro cartão.", ["cartao-em-uso"]);
+        }
+      } else {
+        $response = JsonResponse::erro("Aguardando leitura do cartão.", ["aguardando-leitura-cartao"]);
+      }
+    } catch (\Throwable $th) {
+      $response = JsonResponse::erro("Falha ao alterar o cartão cadastrado.", [$th->getMessage()]);
     }
 
     $response->enviar();

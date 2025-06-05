@@ -44,6 +44,9 @@ switch ($url) {
   case '/api/usuario/alterar-senha':
     (new UsuarioController())->alterarSenhaAPI();
     break;
+  case '/api/usuario/alterar-cartao':
+    (new UsuarioController())->alterarCartaoAPI();
+    break;
   default:
     // Se nenhuma rota for encontrada
     (new MeuPerfilController())->index();

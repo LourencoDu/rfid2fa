@@ -8,9 +8,15 @@ final class Cartao
 {
   public $id, $uid, $id_usuario;
 
+
   function getByUid(string $uid): ?Cartao
   {
     return (new CartaoDAO())->selectByUid($uid);
+  }
+
+  function getByIdUsuario(string $id_usuario): ?Cartao
+  {
+    return (new CartaoDAO())->selectByIdUsuario($id_usuario);
   }
 
   function verificarLeitura(): ?Cartao

@@ -48,9 +48,17 @@ array_push(
                   </td>
 
                   <td class="min-w-10 sm:min-w-20 px-5 py-2 text-end">
-                    <?php if ($info["label"] === "Senha") : ?>
+                    <?php if ($info["label"] == "Senha") : ?>
                       <button id="button-alterar-senha" class="button small text-nowrap">
+                        <i class="fa-solid fa-key"></i>
                         Alterar Senha
+                      </button>
+                    <?php endif; ?>
+
+                    <?php if ($info["label"] == "UID do Cartão") : ?>
+                      <button id="button-alterar-cartao" class="button small text-nowrap">
+                        <i class="fa-solid fa-id-card"></i>
+                        Alterar Cartão
                       </button>
                     <?php endif; ?>
                   </td>

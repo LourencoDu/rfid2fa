@@ -40,6 +40,23 @@ final class CartaoDAO extends DAO
     return null;
   }
 
+  public function selectByIdUsuario(string $id_usuario): ?Cartao
+  {
+    $sql = "SELECT * FROM cartao WHERE id_usuario = ?;";
+
+    $stmt = parent::$conexao->prepare($sql);
+    $stmt->bindValue(1, $id_usuario);
+    $stmt->execute();
+
+    $data = $stmt->fetch(DAO::FETCH_ASSOC);
+
+    if (is_array($data)) {
+      return $this->parseRow($data);
+    }
+
+    return null;
+  }
+
   public function verificarLeitura(Cartao $model): ?Cartao
   {
     $sql = "SELECT * FROM cartao WHERE id_usuario = ?";

@@ -9,7 +9,7 @@ final class MeuPerfilController extends Controller
     parent::isProtected();
 
     $this->view = "MeuPerfil/index.php";
-    $this->js = "MeuPerfil/script.js";
+    $this->js = ["MeuPerfil/alterar-senha.js", "MeuPerfil/alterar-cartao.js"];
     $this->titulo = "Meu Perfil";
     $this->render();
   }

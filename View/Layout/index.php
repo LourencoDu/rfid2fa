@@ -44,7 +44,13 @@
 
     <?php
     if (isset($js)) {
-        echo "<script src='/" . BASE_DIR_NAME . "/view/$js'></script>";
+        if(is_array($js)) {
+            foreach ($js as $jsPath) {
+                echo "<script src='/" . BASE_DIR_NAME . "/view/$jsPath'></script>";
+            }
+        } else {
+            echo "<script src='/" . BASE_DIR_NAME . "/view/$js'></script>";
+        }
     }
     ?>
 

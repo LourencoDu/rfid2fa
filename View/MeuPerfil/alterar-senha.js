@@ -11,7 +11,7 @@ document
   .addEventListener("click", () => {
     openFormModal({
       title: "Alterar Senha",
-      onConfirm: (event) => onSubmitForm(event),
+      onConfirm: (event) => onSubmitAlterarSenhaForm(event),
       showCloseButton: true,
       campos: [
         {
@@ -47,13 +47,13 @@ document
     });
   });
 
-function handleSucesso() {
+function handleAlterarSenhaSucesso() {
   showSnackbar("Senha alterada com sucesso!", "success");
   closeFormModal();
   closeReadCardModal();
 }
 
-function handleFalha(erro = "", mensagem = "") {
+function handleAlterarSenhaFalha(erro = "", mensagem = "") {
   if (!!erro || !!mensagem) {
     showSnackbar(mensagem, "erro", 5000);
   } else {
@@ -79,20 +79,20 @@ async function handleAlterarSenha() {
     );
 
     if (response.status === "success") {
-      handleSucesso();
+      handleAlterarSenhaSucesso();
     } else {
       const erro = response.erros[0];
 
       if (erro == "aguardando-leitura-cartao") {
         handleAlterarSenha();
       } else {
-        handleFalha(erro, response.mensagem);
+        handleAlterarSenhaFalha(erro, response.mensagem);
       }
     }
   }, 2500);
 }
 
-async function onSubmitForm(event) {
+async function onSubmitAlterarSenhaForm(event) {
   event.preventDefault();
 
   let valido = true;
@@ -124,7 +124,7 @@ async function onSubmitForm(event) {
     toggleLoading(false);
 
     if (response?.status === "success") {
-      handleSucesso();
+      handleAlterarSenhaSucesso();
     } else {
       const erro = response?.erros[0];
 
@@ -138,7 +138,7 @@ async function onSubmitForm(event) {
           },
         });
       } else {
-        handleFalha(erro, response.mensagem);
+        handleAlterarSenhaFalha(erro, response.mensagem);
       }
     }
   }

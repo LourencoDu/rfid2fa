@@ -1,21 +1,23 @@
-#include <SPI.h>
-#include <MFRC522.h>
+#include <Wire.h>
+#include <Adafruit_PN532.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#define RST_PIN   32
-#define SS_PIN    33
-#define SCK_PIN   14
-#define MOSI_PIN  27
-#define MISO_PIN  25
+// Pinos I²C padrão no ESP32-C3
+#define SDA_PIN 8
+#define SCL_PIN 9
 
-const char* ssid = "REDE";
-const char* password = "SENHA";
+// Inicializa o PN532 usando I²C
+Adafruit_PN532 nfc(SDA_PIN, SCL_PIN);
 
-// Troque pelo IP do seu computador na rede
+// Wi-Fi
+const char* ssid = "eduardo_notebook";
+const char* password = "35663593";
+
+// API de destino
 const char* serverUrl = "http://192.168.18.13/rfid2fa/api/leitura/cadastro";
 
-MFRC522 rfid(SS_PIN, RST_PIN);
+unsigned long tempoInicio, tempoLeitura, tempoHttp;
 
 void setup() {
   Serial.begin(115200);
@@ -31,48 +33,66 @@ void setup() {
   Serial.println("\n✅ Conectado ao Wi-Fi!");
   Serial.println(WiFi.localIP());
 
-  SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, SS_PIN);
-  rfid.PCD_Init();
+  // Inicializa NFC
+  nfc.begin();
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (!versiondata) {
+    Serial.println("❌ Módulo NFC não detectado.");
+    while (1); // trava
+  }
+
+  Serial.println("✅ Módulo NFC detectado!");
+  nfc.SAMConfig(); // Prepara para leitura
   Serial.println("Aproxime o cartão...");
 }
 
 void loop() {
-  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;
+  uint8_t uid[7];
+  uint8_t uidLength;
 
-  String uid_str = "";
-  for (byte i = 0; i < rfid.uid.size; i++) {
-    if (rfid.uid.uidByte[i] < 0x10) uid_str += "0";
-    uid_str += String(rfid.uid.uidByte[i], HEX);
-  }
-  uid_str.toUpperCase();
-
-  Serial.print("UID detectado: ");
-  Serial.println(uid_str);
-
-  // Enviar requisição HTTP POST
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(serverUrl);
-    http.addHeader("Content-Type", "application/json");
-
-    String jsonBody = "{\"uid_cartao\":\"" + uid_str + "\"}";
-    int httpResponseCode = http.POST(jsonBody);
-
-    if (httpResponseCode > 0) {
-      Serial.print("✅ Código HTTP: ");
-      Serial.println(httpResponseCode);
-      String payload = http.getString();
-      Serial.println("Resposta: " + payload);
-    } else {
-      Serial.print("❌ Erro na requisição: ");
-      Serial.println(httpResponseCode);
+  if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength)) {
+  tempoInicio = micros();   
+    // UID
+    String uid_str = "";
+    for (uint8_t i = 0; i < uidLength; i++) {
+      if (uid[i] < 0x10) uid_str += "0";
+      uid_str += String(uid[i], HEX);
     }
-    http.end();
-  } else {
-    Serial.println("❌ Wi-Fi desconectado!");
-  }
+    uid_str.toUpperCase();
 
-  rfid.PICC_HaltA();
-  rfid.PCD_StopCrypto1();
-  delay(2000); // Evita leituras duplicadas
+    tempoLeitura = micros();
+    float tempoNfcLeituraMs = (tempoLeitura - tempoInicio) / 1000.0;
+    Serial.print("⏱️ Tempo leitura NFC + Montagem do UID (ms): ");
+    Serial.println(tempoNfcLeituraMs);
+
+    tempoLeitura = millis();
+    // Enviar para servidor
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+      http.begin(serverUrl);
+      http.addHeader("Content-Type", "application/json");
+
+      String jsonBody = "{\"uid_cartao\":\"" + uid_str + "\"}";
+      int httpResponseCode = http.POST(jsonBody);
+
+      tempoHttp = millis();
+      Serial.print("⏱️ Tempo HTTP (ms): ");
+      Serial.println(tempoHttp - tempoLeitura);
+
+      if (httpResponseCode > 0) {
+        Serial.print("✅ Código HTTP: ");
+        Serial.println(httpResponseCode);
+        String payload = http.getString();
+        Serial.println("Resposta: " + payload);
+      } else {
+        Serial.print("❌ Erro na requisição: ");
+        Serial.println(httpResponseCode);
+      }
+      http.end();
+    } else {
+      Serial.println("❌ Wi-Fi desconectado!");
+    }
+
+    delay(2000); // Evita leituras seguidas
+  }
 }

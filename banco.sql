@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `rfid2fa`.`leitura` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `data` TIMESTAMP NOT NULL,
   `uid_cartao` VARCHAR(255) NOT NULL,
-  `acao` VARCHAR(255) NOT NULL,
+  `acao` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
